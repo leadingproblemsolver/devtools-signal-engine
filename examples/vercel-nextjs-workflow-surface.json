@@ -1,0 +1,24 @@
+{
+  "account": "Vercel",
+  "repository": "vercel/next.js",
+  "observed": {
+    "github_actions_workflow_count": 60,
+    "uses_github_actions": true,
+    "codeowners_path": ".github/CODEOWNERS"
+  },
+  "inferred": [],
+  "unknown": [
+    "whether workflow count creates material CI or merge pain",
+    "whether the account is actively evaluating workflow tooling",
+    "whether observed governance complexity maps to a current buying project"
+  ],
+  "next_validation": [
+    "measure recent PR throughput and merge-time distribution",
+    "inspect CI/release workflow characteristics",
+    "look for public DevEx/platform/release engineering signals"
+  ],
+  "provenance": [
+    "GitHub Actions workflows API",
+    "GitHub repository contents API for .github/CODEOWNERS"
+  ]
+}
