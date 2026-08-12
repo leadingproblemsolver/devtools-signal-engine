@@ -1,10 +1,10 @@
 # devtools-signal-engine
 
-Provenance-first technical account signal engine for developer-tools GTM.
+Evidence-backed technical account intelligence for developer-tools GTM.
 
-The system turns public engineering-system data into trustworthy, inspectable account intelligence while preserving the distinction between **observed evidence**, **derived signals**, and **unknowns**.
+The engine converts public engineering-system data into inspectable account signals while keeping **observed evidence**, **derived features**, and **unknowns** explicitly separate.
 
-## Current vertical slice
+## Current pipeline
 
 ```text
 GitHub REST API
@@ -12,45 +12,35 @@ GitHub REST API
   -> typed RepositoryEvidence
   -> identity + provenance validation
   -> duplicate-safe acquisition snapshot
+  -> technical feature extraction
+  -> transparent account scoring
+  -> OpportunityBundle
 ```
 
-## Why this matters
+## Correctness contracts
 
-A GTM signal engine is only useful if downstream scoring can trust the evidence it receives. The current implementation therefore treats completeness and identity as correctness contracts:
+The system treats evidence integrity as a product requirement:
 
-- later-page acquisition failure invalidates the run rather than returning partial data;
-- HTTP success does not imply payload/schema validity;
-- GitHub numeric repository `id` is canonical identity because names can change;
-- duplicate stable IDs inside one acquisition snapshot fail explicitly rather than guessing first/last freshness;
-- malformed required identity/provenance fields fail at the normalization boundary.
-
-## Candidate-owned engineering kernels
-
-The repository is intentionally built with AI assistance for commodity implementation speed. The engineering claim is not that every line was manually typed. The correctness-critical decisions below are explicitly owned, documented, tested, and defensible:
-
-1. Pagination completeness and termination semantics.
-2. Transport success vs payload-contract validity.
-3. Stable repository identity using GitHub numeric `id`.
-4. Duplicate-identity policy: fail the inconsistent snapshot.
-5. Malformed evidence policy: fail required identity/provenance fields explicitly.
-6. Next: evidence-backed technical feature definitions and transparent scoring.
-7. Next: relational identity/upsert semantics and SQL.
-
-See GitHub issues `PROOF-001`, `ADR-001`, and `DOC-003` for the reasoning ledger.
+- acquisition is complete or fails explicitly; later-page failures never return partial success;
+- HTTP success does not imply payload-contract validity;
+- GitHub numeric repository `id` is canonical identity because mutable names can change;
+- duplicate stable IDs inside one acquisition snapshot fail rather than guessing which record is authoritative;
+- malformed required identity or provenance fields fail at the normalization boundary;
+- raw observations are never promoted into stronger claims without an explicit derived-feature layer.
 
 ## Executable proof
 
-Current regression coverage includes:
+Regression coverage currently includes:
 
-- optional authorization headers;
+- optional GitHub authorization;
 - single-page and multi-page acquisition;
 - exact-page-boundary pagination;
-- later-page server failure -> hard failure, never partial success;
-- malformed JSON / unexpected payload handling;
+- later-page server failure -> hard failure;
+- malformed JSON and unexpected payload handling;
 - timeout/network error conversion to domain-level errors;
-- repository rename preserves identity;
-- duplicate stable ID in one batch fails;
-- missing/invalid required identity and metric fields fail.
+- repository rename preserving logical identity;
+- duplicate stable ID in one batch -> hard failure;
+- malformed required identity, timestamp, and numeric fields -> hard failure.
 
 Run:
 
@@ -58,32 +48,42 @@ Run:
 pytest -q
 ```
 
-## Current data contract
+## Data contract
 
-`RepositoryEvidence` preserves stable identity and provenance, including:
+`RepositoryEvidence` preserves the minimum fields required for downstream technical analysis:
 
-- `github_id`
-- mutable repository naming attributes
-- owner
-- source URL
-- activity/metadata fields
-- source/observation timestamps
+- stable GitHub repository ID;
+- mutable repository naming attributes;
+- owner and source locator;
+- language/activity metadata;
+- created/updated/pushed timestamps;
+- observation timestamp.
 
-## Next employer-facing proof
+## Engineering decisions
 
-The immediate roadmap is deliberately tied to developer-tools GTM work:
+The implementation is intentionally explicit about the few decisions that determine trustworthiness: completeness, identity, schema validity, duplicate policy, provenance, and later score explainability.
+
+See:
+
+- [`docs/engineering-contract.md`](docs/engineering-contract.md)
+- [`docs/decision-log.md`](docs/decision-log.md)
+- [`docs/proof-map.md`](docs/proof-map.md)
+
+## Next vertical slice
+
+The immediate build path is tied directly to developer-tools GTM research:
 
 ```text
-GitHub repository evidence
-  -> GitHub Actions / PR / DevEx-relevant features
-  -> Playwright careers / engineering-source evidence
+repository evidence
+  -> PR / CI / GitHub Actions / CODEOWNERS / activity features
+  -> careers + engineering-source evidence
   -> Postgres + SQL
   -> transparent component score
-  -> 30-50 real account dataset
+  -> 30-50 real accounts
   -> OpportunityBundle output
 ```
 
-Every signal will explicitly distinguish:
+Every downstream signal is classified as:
 
 ```text
 OBSERVED
@@ -91,15 +91,4 @@ INFERRED
 UNKNOWN
 ```
 
-No model inference will be promoted into raw evidence.
-
-## Proof standard
-
-A correctness-critical kernel is only considered proven when all are true:
-
-1. the decision/rationale is documented;
-2. production-valid code enforces it;
-3. an adversarial/regression test proves it;
-4. the candidate can explain what it does, the boundary, the dangerous failure, and the tradeoff.
-
-The larger portfolio goal is to connect this trustworthy signal layer into a real GTM control plane with CRM, enrichment/orchestration, approved execution, and measurable outcomes.
+No probabilistic inference is treated as raw evidence.
