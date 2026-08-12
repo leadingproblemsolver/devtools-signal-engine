@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 
@@ -11,6 +12,7 @@ class GitHubAPIError(RuntimeError):
 
 class GitHubClient:
     BASE_URL = "https://api.github.com"
+    CODEOWNERS_PATHS = (".github/CODEOWNERS", "CODEOWNERS", "docs/CODEOWNERS")
 
     def __init__(
         self,
@@ -75,15 +77,87 @@ class GitHubClient:
 
                 repos.extend(chunk)
 
-                # Exact multiples require one terminal empty request. This is
-                # intentional: it prevents silent truncation without relying on
-                # a separate total-count contract.
                 if len(chunk) < self.per_page:
                     break
 
                 page += 1
 
         return repos
+
+    def list_repository_workflows(self, owner: str, repo: str) -> list[dict[str, Any]]:
+        """Return every GitHub Actions workflow visible for a repository."""
+        self._validate_repo_coordinates(owner, repo)
+        url = f"{self.BASE_URL}/repos/{owner.strip()}/{repo.strip()}/actions/workflows"
+        page = 1
+        workflows: list[dict[str, Any]] = []
+
+        with httpx.Client(timeout=self.timeout_seconds, headers=self._headers()) as client:
+            while True:
+                try:
+                    response = client.get(
+                        url,
+                        params={"per_page": self.per_page, "page": page},
+                    )
+                except httpx.TimeoutException as exc:
+                    raise GitHubAPIError(
+                        f"GitHub workflow request timed out after {self.timeout_seconds}s on page {page}"
+                    ) from exc
+                except httpx.RequestError as exc:
+                    raise GitHubAPIError(
+                        f"GitHub workflow network request failed on page {page}: {exc.__class__.__name__}"
+                    ) from exc
+
+                self._raise_for_response(response, page=page)
+                try:
+                    payload = response.json()
+                except ValueError as exc:
+                    raise GitHubAPIError("GitHub returned invalid workflow JSON") from exc
+
+                if not isinstance(payload, dict) or not isinstance(payload.get("workflows"), list):
+                    raise GitHubAPIError(
+                        "GitHub returned an unexpected workflow payload; expected workflows list"
+                    )
+
+                chunk = payload["workflows"]
+                workflows.extend(chunk)
+                if len(chunk) < self.per_page:
+                    break
+                page += 1
+
+        return workflows
+
+    def find_codeowners_path(self, owner: str, repo: str) -> str | None:
+        """Return the first supported CODEOWNERS path that exists, otherwise None."""
+        self._validate_repo_coordinates(owner, repo)
+
+        with httpx.Client(timeout=self.timeout_seconds, headers=self._headers()) as client:
+            for path in self.CODEOWNERS_PATHS:
+                encoded_path = quote(path, safe="/")
+                url = f"{self.BASE_URL}/repos/{owner.strip()}/{repo.strip()}/contents/{encoded_path}"
+                try:
+                    response = client.get(url)
+                except httpx.TimeoutException as exc:
+                    raise GitHubAPIError(
+                        f"GitHub CODEOWNERS request timed out after {self.timeout_seconds}s"
+                    ) from exc
+                except httpx.RequestError as exc:
+                    raise GitHubAPIError(
+                        f"GitHub CODEOWNERS network request failed: {exc.__class__.__name__}"
+                    ) from exc
+
+                if response.status_code == 404:
+                    continue
+                self._raise_for_response(response, page=1)
+                return path
+
+        return None
+
+    @staticmethod
+    def _validate_repo_coordinates(owner: str, repo: str) -> None:
+        if not owner or not owner.strip():
+            raise ValueError("owner must be a non-empty string")
+        if not repo or not repo.strip():
+            raise ValueError("repo must be a non-empty string")
 
     def _raise_for_response(self, response: httpx.Response, *, page: int) -> None:
         status = response.status_code
