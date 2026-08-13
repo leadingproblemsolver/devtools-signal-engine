@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 
+from .account_summary import build_account_summary, format_account_summary
 from .github import GitHubAPIError, GitHubClient
 
 
@@ -13,13 +14,12 @@ def main() -> int:
 
     client = GitHubClient(token=os.getenv("GITHUB_TOKEN"))
     try:
-        repos = client.list_org_repositories(sys.argv[1])
+        summary = build_account_summary(client, sys.argv[1])
     except (GitHubAPIError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    print(f"organization: {sys.argv[1]}")
-    print(f"repositories: {len(repos)}")
+    print(format_account_summary(summary))
     return 0
 
 
