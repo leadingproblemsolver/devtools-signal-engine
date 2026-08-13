@@ -152,6 +152,99 @@ class GitHubClient:
 
         return None
 
+    def search_pull_requests(
+        self,
+        query: str,
+        *,
+        max_items: int = 100,
+    ) -> tuple[int, list[dict[str, Any]]]:
+        """Return GitHub Search's total count plus a bounded set of PR issue records."""
+        if not query or not query.strip():
+            raise ValueError("query must be a non-empty string")
+        if not 1 <= max_items <= 1000:
+            raise ValueError("max_items must be between 1 and 1000")
+
+        url = f"{self.BASE_URL}/search/issues"
+        page = 1
+        items: list[dict[str, Any]] = []
+        total_count: int | None = None
+
+        with httpx.Client(timeout=self.timeout_seconds, headers=self._headers()) as client:
+            while len(items) < max_items:
+                remaining = max_items - len(items)
+                per_page = min(self.per_page, remaining)
+                try:
+                    response = client.get(
+                        url,
+                        params={
+                            "q": query.strip(),
+                            "sort": "updated",
+                            "order": "desc",
+                            "per_page": per_page,
+                            "page": page,
+                        },
+                    )
+                except httpx.TimeoutException as exc:
+                    raise GitHubAPIError(
+                        f"GitHub search timed out after {self.timeout_seconds}s on page {page}"
+                    ) from exc
+                except httpx.RequestError as exc:
+                    raise GitHubAPIError(
+                        f"GitHub search request failed on page {page}: {exc.__class__.__name__}"
+                    ) from exc
+
+                self._raise_for_response(response, page=page)
+                try:
+                    payload = response.json()
+                except ValueError as exc:
+                    raise GitHubAPIError("GitHub returned invalid search JSON") from exc
+
+                if (
+                    not isinstance(payload, dict)
+                    or not isinstance(payload.get("total_count"), int)
+                    or not isinstance(payload.get("items"), list)
+                ):
+                    raise GitHubAPIError("GitHub returned an unexpected search payload")
+
+                if total_count is None:
+                    total_count = payload["total_count"]
+
+                chunk = payload["items"]
+                items.extend(chunk)
+                if not chunk or len(chunk) < per_page:
+                    break
+                page += 1
+
+        return total_count or 0, items
+
+    def fetch_pull_request_detail(self, api_url: str) -> dict[str, Any]:
+        """Fetch one PR detail document from a GitHub API URL returned by search."""
+        prefix = f"{self.BASE_URL}/repos/"
+        if not api_url.startswith(prefix) or "/pulls/" not in api_url:
+            raise ValueError("api_url must be a GitHub pull-request API URL")
+
+        with httpx.Client(timeout=self.timeout_seconds, headers=self._headers()) as client:
+            try:
+                response = client.get(api_url)
+            except httpx.TimeoutException as exc:
+                raise GitHubAPIError(
+                    f"GitHub PR detail request timed out after {self.timeout_seconds}s"
+                ) from exc
+            except httpx.RequestError as exc:
+                raise GitHubAPIError(
+                    f"GitHub PR detail request failed: {exc.__class__.__name__}"
+                ) from exc
+
+            self._raise_for_response(response, page=1)
+            try:
+                payload = response.json()
+            except ValueError as exc:
+                raise GitHubAPIError("GitHub returned invalid PR detail JSON") from exc
+
+            if not isinstance(payload, dict):
+                raise GitHubAPIError("GitHub returned an unexpected PR detail payload")
+            return payload
+
     @staticmethod
     def _validate_repo_coordinates(owner: str, repo: str) -> None:
         if not owner or not owner.strip():
