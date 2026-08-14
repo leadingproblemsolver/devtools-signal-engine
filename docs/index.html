@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Technical Account Intelligence — Proof Surface</title>
+<meta name="description" content="Evidence-backed technical account intelligence for developer-tools GTM." />
+<style>
+:root{--bg:#0b0d10;--panel:#11151a;--line:#242b33;--text:#eef2f6;--muted:#9aa7b4;--good:#8bd5a5;--warn:#e8c36a;--accent:#8ab4ff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}.wrap{max-width:1080px;margin:0 auto;padding:48px 22px 80px}
+.eyebrow{color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-size:12px}.hero{padding:26px 0 34px;border-bottom:1px solid var(--line)}
+h1{font-size:clamp(34px,6vw,62px);line-height:1.02;margin:8px 0 16px;max-width:900px}.lead{font-size:19px;color:#c8d1dc;max-width:800px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}.btn{display:inline-block;padding:10px 14px;border:1px solid var(--line);border-radius:9px;background:#151a20;color:var(--text)}
+.btn.primary{background:#eef2f6;color:#0b0d10;border-color:#eef2f6}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;margin-top:26px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}.card h2,.card h3{margin-top:0}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:6px}.metric{font-size:36px;font-weight:700;line-height:1}
+.list{margin:8px 0 0;padding-left:19px}.list li{margin:7px 0}.observed{border-left:3px solid var(--good)}.unknown{border-left:3px solid var(--warn)}
+.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:4px 8px;color:var(--muted);font-size:12px;margin:3px 4px 3px 0}
+.small{color:var(--muted);font-size:13px}.proofs{margin-top:34px}.proof{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start;padding:18px 0;border-top:1px solid var(--line)}
+.status{font-size:12px;color:var(--good);white-space:nowrap}.footer{margin-top:36px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+code{background:#171c22;border:1px solid var(--line);padding:2px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Flagship proof · developer-tools GTM</div>
+    <h1>Technical Account Intelligence</h1>
+    <p class="lead">Turn public GitHub engineering activity into an evidence-backed account brief while keeping observed facts, bounded inference, and unknowns explicitly separate.</p>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/leadingproblemsolver/devtools-signal-engine">View repository</a>
+      <a class="btn" href="https://github.com/leadingproblemsolver/devtools-signal-engine/blob/main/docs/engineering-contract.md">Engineering contract</a>
+      <a class="btn" href="https://github.com/leadingproblemsolver/devtools-signal-engine/blob/main/docs/proof-map.md">Proof map</a>
+    </div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <div class="label">Inspectable sample</div>
+      <h2>Vercel / next.js</h2>
+      <p class="small">Precomputed repository evidence checked into the repo. This page does not pretend a browser-side API call is live.</p>
+
+      <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-top:18px">
+        <div class="card observed">
+          <div class="label">Observed</div>
+          <div class="metric">60</div>
+          <div class="small">GitHub Actions workflow files observed</div>
+        </div>
+        <div class="card observed">
+          <div class="label">Observed</div>
+          <div style="font-size:20px;font-weight:650">CODEOWNERS present</div>
+          <div class="small"><code>.github/CODEOWNERS</code></div>
+        </div>
+      </div>
+
+      <div class="card observed" style="margin-top:16px">
+        <div class="label">Observed / deterministic</div>
+        <ul class="list">
+          <li>GitHub Actions workflow surface is present.</li>
+          <li>Repository governance evidence includes a CODEOWNERS file.</li>
+          <li>Evidence comes from GitHub workflow and repository-content APIs.</li>
+        </ul>
+      </div>
+
+      <div class="card unknown" style="margin-top:16px">
+        <div class="label">Unknown — deliberately not guessed</div>
+        <ul class="list">
+          <li>Whether workflow count creates material CI or merge pain.</li>
+          <li>Whether Vercel is evaluating workflow tooling.</li>
+          <li>Whether observed governance complexity maps to a buying project.</li>
+        </ul>
+      </div>
+    </section>
+
+    <aside>
+      <section class="card">
+        <div class="label">System contract</div>
+        <h3>Evidence integrity first</h3>
+        <div>
+          <span class="pill">complete pagination or fail</span>
+          <span class="pill">stable numeric repo identity</span>
+          <span class="pill">schema validation</span>
+          <span class="pill">explicit sample scope</span>
+          <span class="pill">OBSERVED / INFERRED / UNKNOWN</span>
+        </div>
+        <p class="small" style="margin-top:16px">The CLI accepts a GitHub organization, acquires public evidence, computes deterministic metrics, and emits an account brief with provenance.</p>
+        <p><code>python -m devtools_signal_engine vercel</code></p>
+      </section>
+
+      <section class="card" style="margin-top:18px">
+        <div class="label">Why this exists</div>
+        <p>Technical GTM teams need defensible reasons to investigate accounts. Public engineering activity can create useful signals, but only if evidence and inference are not blurred together.</p>
+      </section>
+    </aside>
+  </div>
+
+  <section class="proofs">
+    <div class="eyebrow">Supporting engineering receipts</div>
+    <div class="proof">
+      <div>
+        <h3 style="margin:0 0 6px">sqlite-utils #841 — reproduction + source localization</h3>
+        <p class="small" style="margin:0">Reproduced inconsistent missing-table behavior across <code>rows_where()</code>, <code>delete_where()</code>, and <code>count_where()</code>; localized the divergent execution paths and preserved the maintainer's v5 compatibility constraint.</p>
+        <p style="margin:8px 0 0"><a href="./sqlite-utils-841.html">Read investigation</a> · <a href="https://github.com/simonw/sqlite-utils/issues/841">Upstream issue</a></p>
+      </div>
+      <div class="status">REPRODUCED · LOCALIZED</div>
+    </div>
+  </section>
+
+  <div class="footer">
+    Source-first proof surface. Claims are bounded to checked-in evidence, tests, upstream issues, and public repository artifacts.
+  </div>
+</div>
+</body>
+</html>
