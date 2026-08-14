@@ -4,6 +4,13 @@ Evidence-backed technical account intelligence for developer-tools GTM.
 
 The engine takes a real GitHub organization and converts public engineering-system evidence into an inspectable account brief while keeping **observed evidence**, **derived metrics**, **bounded inference**, and **unknowns** explicitly separate.
 
+## Proof surface
+
+- [`docs/index.html`](docs/index.html) — static flagship proof surface using checked-in Vercel/Next.js evidence
+- [`docs/sqlite-utils-841.html`](docs/sqlite-utils-841.html) — external-repository bug reproduction + source localization receipt
+
+The `docs/` directory is intentionally zero-dependency and GitHub-Pages-ready. The static page labels precomputed evidence explicitly instead of pretending to make a live browser-side GitHub API call.
+
 ## Run one real account
 
 ```bash
