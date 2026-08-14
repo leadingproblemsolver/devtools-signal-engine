@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>sqlite-utils #841 — reproduction + source localization</title>
+<style>
+body{margin:0;background:#0b0d10;color:#eef2f6;font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:860px;margin:0 auto;padding:48px 22px 80px}a{color:#8ab4ff;text-decoration:none}a:hover{text-decoration:underline}
+h1{font-size:38px;line-height:1.08;margin:8px 0 14px}.muted{color:#9aa7b4}.tag{display:inline-block;padding:4px 8px;border:1px solid #2a323c;border-radius:999px;color:#9aa7b4;font-size:12px;margin-right:6px}
+section{padding:22px 0;border-top:1px solid #242b33}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#11151a;border:1px solid #242b33;border-radius:10px;padding:14px}
+code{background:#171c22;border:1px solid #242b33;padding:2px 5px;border-radius:5px}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;border-bottom:1px solid #242b33;padding:10px 8px;vertical-align:top}
+</style>
+</head>
+<body><main>
+<p><a href="./index.html">← Proof hub</a></p>
+<div class="muted">External repository investigation</div>
+<h1>sqlite-utils #841 — reproduction + source localization</h1>
+<p><span class="tag">Python 3.11</span><span class="tag">sqlite-utils 3.36.0</span><span class="tag">branch: main</span></p>
+
+<section>
+<h2>Reported behavior</h2>
+<p><code>rows_where()</code> and <code>delete_where()</code> tolerate a missing table, while <code>count_where()</code> raises <code>sqlite3.OperationalError</code>.</p>
+<p><a href="https://github.com/simonw/sqlite-utils/issues/841">Upstream issue #841</a></p>
+</section>
+
+<section>
+<h2>Reproduction</h2>
+<pre>python -c "import sqlite_utils; db=sqlite_utils.Database(memory=True); print(list(db.table('does_not_exist').rows_where())); db.table('does_not_exist').delete_where()"</pre>
+<p>Observed: <code>[]</code>; <code>delete_where()</code> completes silently.</p>
+
+<pre>python -c "import sqlite_utils; db=sqlite_utils.Database(memory=True); print(db.table('does_not_exist').count_where())"</pre>
+<p>Observed: <code>sqlite3.OperationalError: no such table: does_not_exist</code>.</p>
+</section>
+
+<section>
+<h2>Source localization</h2>
+<table>
+<thead><tr><th>Method</th><th>Path</th><th>Why behavior differs</th></tr></thead>
+<tbody>
+<tr><td><code>rows_where()</code></td><td><code>sqlite_utils/db.py</code><br><code>SELECT &lt;select&gt; FROM [&lt;table&gt;] WHERE &lt;where&gt;</code></td><td>Implemented as a generator; SQL execution is deferred until iteration.</td></tr>
+<tr><td><code>delete_where()</code></td><td><code>sqlite_utils/db.py</code><br><code>DELETE FROM [&lt;table&gt;] WHERE &lt;where&gt;</code></td><td>Guards with <code>if not self.exists(): return self</code>, silently returning the Table object.</td></tr>
+<tr><td><code>count_where()</code></td><td><code>sqlite_utils/db.py</code><br><code>SELECT count(*) FROM [&lt;table&gt;] WHERE &lt;where&gt;</code></td><td>Executes synchronously via <code>self.db.execute()</code>, so SQLite immediately raises for the missing table.</td></tr>
+</tbody>
+</table>
+</section>
+
+<section>
+<h2>Root-cause hypothesis</h2>
+<p>Missing-table semantics are inconsistent across Table methods because lazy generator evaluation, explicit existence guards, and eager scalar execution use different failure behaviors.</p>
+</section>
+
+<section>
+<h2>Constraint</h2>
+<p>The maintainer explicitly deferred normalizing this behavior to v5 because changing it would be a breaking compatibility change. This investigation does not claim a patch or merged contribution.</p>
+</section>
+</main></body></html>
