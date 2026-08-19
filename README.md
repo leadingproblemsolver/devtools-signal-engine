@@ -31,6 +31,24 @@ The command reports:
 
 Where exhaustive acquisition would create hundreds of API calls, the output states its sample scope instead of presenting a sampled result as org-wide fact.
 
+## Run benchmark cohorts
+
+The repository includes a reproducible seed set for the next proof step: five developer-tool organizations with verified public GitHub handles plus a separate Qatar market cohort.
+
+```bash
+# Inspect the complete 10-account seed set without API calls.
+python -m devtools_signal_engine --list-cohorts
+
+# Run the five GitHub-observable global benchmark organizations.
+export GITHUB_TOKEN=...
+python -m devtools_signal_engine --cohort global
+
+# Run QCRI and print the other Qatar organizations as enrichment-only targets.
+python -m devtools_signal_engine --cohort qatar
+```
+
+The Qatar cohort deliberately does **not** invent GitHub handles for ecosystem-relevant organizations whose public engineering identity has not been verified. See [`docs/account-cohorts.md`](docs/account-cohorts.md) and [`examples/account_cohorts.csv`](examples/account_cohorts.csv).
+
 ## Current pipeline
 
 ```text
@@ -80,7 +98,8 @@ Regression coverage includes:
 - malformed required identity, timestamp, and numeric fields -> hard failure;
 - PR time-window calculations;
 - workflow/CODEOWNERS observation boundaries;
-- account-summary scope and archived-repository activity boundaries.
+- account-summary scope and archived-repository activity boundaries;
+- cohort separation between GitHub-observable and enrichment-only targets.
 
 ## Output discipline
 
@@ -106,7 +125,8 @@ See:
 - [`docs/engineering-contract.md`](docs/engineering-contract.md)
 - [`docs/decision-log.md`](docs/decision-log.md)
 - [`docs/proof-map.md`](docs/proof-map.md)
+- [`docs/account-cohorts.md`](docs/account-cohorts.md)
 
 ## Next proof step
 
-Run the command across 3-5 real developer-tool organizations, inspect weak/incorrect signals, then persist a 10-30 account dataset before introducing calibrated ranking weights.
+Run the checked-in global and Qatar cohorts, inspect weak/incorrect signals, then persist observed outputs into a 10-30 account dataset before introducing calibrated ranking weights.
